@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'emailverification'
+    
 ]
 
 MIDDLEWARE = [
@@ -80,23 +81,23 @@ WSGI_APPLICATION = 'emailverify.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'emailverify',  # Use your actual database name
-        'USER': 'myuser',     # Use your actual username
-        'PASSWORD':'mypassword',  # Use your actual password
-        'HOST': 'localhost',  # Set to empty string for localhost
-        'PORT': '',  # Set to empty string for default
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'emailverify',  # Use your actual database name
+#         'USER': 'myuser',     # Use your actual username
+#         'PASSWORD':'mypassword',  # Use your actual password
+#         'HOST': 'localhost',  # Set to empty string for localhost
+#         'PORT': '',  # Set to empty string for default
+#     }
+# }
 
 #JWT configurations
 REST_FRAMEWORK = {
@@ -105,10 +106,10 @@ REST_FRAMEWORK = {
         
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'account.renderers.EnhancedJSONRenderer',  # Use your custom renderer
-        'rest_framework.renderers.BrowsableAPIRenderer',  # Keep default browsable API
-    )
+    # 'DEFAULT_RENDERER_CLASSES': (
+    #     'account.renderers.EnhancedJSONRenderer',  # Use your custom renderer
+    #     'rest_framework.renderers.BrowsableAPIRenderer',  # Keep default browsable API
+    # )
     
 }
 
