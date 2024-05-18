@@ -33,4 +33,4 @@ class SingleEmail(APIView):
     def post(self, request,*args,**kwargs):
         email = request.data.get('email')
         verify_emails_single_task.delay(email)
-        return Response({'message': 'File received and processing started.'}) 
+        return Response({'message': 'Email Received & Processing'}) 

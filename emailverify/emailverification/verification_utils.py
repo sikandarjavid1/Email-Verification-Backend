@@ -6,6 +6,7 @@ from smtplib import SMTPServerDisconnected, SMTPConnectError, SMTPResponseExcept
 import smtplib
 import socket
 import logging
+import time
 
 def verify_email_syntax(email):
     try:
@@ -30,32 +31,52 @@ def is_disposable_email(email):
     return domain in disposable_domains
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+# smtplib.set_debuglevel(1)
 
 def verify_smtp(email):
     domain = email.split('@')[1]
     try:
+        # Resolve MX records
         records = dns.resolver.resolve(domain, 'MX')
         mx_record = records[0].exchange.to_text()
-        server = smtplib.SMTP(host=mx_record, timeout=10)
-        server.starttls()  # Upgrade to secure connection if possible
-        server.helo('smtp.titan.email')
-        server.mail('sikandar@ayraxs.com')
-        code, message = server.rcpt(str(email))
-        return True if code == 250 else False
-    except SMTPServerDisconnected:
-        logger.error(f"SMTP server disconnected unexpectedly: {email}")
-        return False
-    except SMTPConnectError:
-        logger.error(f"Connection error while contacting SMTP server: {email}")
-        return False
-    except SMTPResponseException as e:
-        logger.error(f"SMTP server response error {e.smtp_code}: {email}")
-        return False
+        logger.info(f"Resolved MX record for {domain}: {mx_record}")
+
+        # Connect to the SMTP server
+        server = smtplib.SMTP(host=mx_record, port=25, timeout=10)
+        server.ehlo_or_helo_if_needed()
+        logger.info("Connected to SMTP server")
+
+        # Start TLS for security
+        server.starttls()
+        server.ehlo_or_helo_if_needed()
+        logger.info("Started TLS")
+
+        # Verify the email address
+        server.mail('sikandar@ayraxs.co')
+        code, message = server.rcpt(email)
+        server.quit()
+
+        if code == 250:
+            logger.info(f"SMTP verification successful for {email}")
+            return True
+        else:
+            logger.warning(f"SMTP verification failed for {email} with code: {code}")
+            return False
+
+    except dns.resolver.NoAnswer:
+        logger.error(f"No MX record found for domain {domain}")
+    except dns.resolver.NXDOMAIN:
+        logger.error(f"Domain {domain} does not exist")
+    except dns.exception.Timeout:
+        logger.error(f"DNS query for domain {domain} timed out")
+    except smtplib.SMTPConnectError as e:
+        logger.error(f"SMTP connection error for {email}: {str(e)}")
+    except smtplib.SMTPServerDisconnected:
+        logger.error(f"SMTP server unexpectedly disconnected")
+    except smtplib.SMTPException as e:
+        logger.error(f"SMTP error for {email}: {str(e)}")
     except Exception as e:
-        logger.error(f"SMTP verification failed for {email}: {str(e)}")
-        return False
-    finally:
-        try:
-            server.quit()
-        except Exception:
-            pass
+        logger.error(f"Unexpected error: {str(e)}")
+
+    return False
