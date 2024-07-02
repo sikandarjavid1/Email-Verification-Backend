@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from .tasks import verify_emails_single_task, verify_emails_task
+from rest_framework.decorators import api_view
+from celery.result import AsyncResult
 
 class FileUploadView(APIView):
     parser_classes = [MultiPartParser]
@@ -32,5 +34,21 @@ class SingleEmail(APIView):
 
     def post(self, request,*args,**kwargs):
         email = request.data.get('email')
-        verify_emails_single_task.delay(email)
-        return Response({'message': 'Email Received & Processing'}) 
+        task = verify_emails_single_task.apply_async(args=[email], countdown=5) 
+        
+        return Response({'task_id': task.id}, status=202) 
+    
+
+
+@api_view(['GET'])
+def check_task_status(request, task_id):
+    task_result = AsyncResult(task_id)
+    if task_result.state == 'PENDING':
+        return Response({'status': task_result.state}, status=200)
+    elif task_result.state != 'FAILURE':
+        return Response({
+            'status': task_result.state,
+            'result': task_result.result
+        }, status=200)
+    else:
+        return Response({'status': task_result.state}, status=400)

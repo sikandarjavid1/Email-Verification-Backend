@@ -7,6 +7,7 @@ import smtplib
 import socket
 import logging
 import time
+import csv
 
 def verify_email_syntax(email):
     try:
@@ -80,3 +81,20 @@ def verify_smtp(email):
         logger.error(f"Unexpected error: {str(e)}")
 
     return False
+
+
+
+
+def chunk_file(file_path, chunk_size=100):
+    """ Yield successive chunks from file_path."""
+    with open(file_path, 'r', newline='', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        chunk = []
+        for i, row in enumerate(reader):
+            if (i % chunk_size == 0 and i > 0):
+                yield chunk
+                chunk = []
+            chunk.append(row)
+        if chunk:
+            yield chunk
+

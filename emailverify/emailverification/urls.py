@@ -17,9 +17,11 @@ Including another URLconf
 
 from django.urls import path
 from emailverification.views import *
+from emailverification import views
 
 urlpatterns = [
     path('upload/', FileUploadView.as_view(), name='upload' ),
     path('singlemail/',SingleEmail.as_view(), name='singlemail' ),
+    path('check_task_status/<str:task_id>/', views.check_task_status),
     
 ]

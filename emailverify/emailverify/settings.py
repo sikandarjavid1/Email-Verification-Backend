@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-qj%#3j%rl*m$9^_+8nn843h)x9==+(ng2r4t925!3fl7557tbj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['44.223.33.48']
+ALLOWED_HOSTS = ['44.223.33.48','127.0.0.1']
 
 
 # Application definition
@@ -37,11 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+     'daphne',
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
-    'emailverification'
+    'emailverification',
+    'channels',
+   
     
 ]
 
@@ -76,6 +79,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'emailverify.wsgi.application'
+ASGI_APPLICATION = 'emailverify.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -181,3 +193,6 @@ CELERY_TIMEZONE = "Asia/Karachi"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_EXTENDED = True
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
