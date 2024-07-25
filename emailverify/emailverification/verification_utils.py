@@ -86,15 +86,16 @@ def verify_smtp(email):
 
 
 def chunk_file(file_path, chunk_size=100):
-    """ Yield successive chunks from file_path."""
+    """Yield successive chunks from file_path, skipping empty rows."""
     with open(file_path, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         chunk = []
-        for i, row in enumerate(reader):
-            if (i % chunk_size == 0 and i > 0):
-                yield chunk
-                chunk = []
-            chunk.append(row)
+        for row in reader:
+            if row and row[0].strip():  # Skip empty rows
+                chunk.append(row)
+                if len(chunk) >= chunk_size:
+                    yield chunk
+                    chunk = []
         if chunk:
             yield chunk
 

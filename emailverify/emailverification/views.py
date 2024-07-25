@@ -2,9 +2,10 @@
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from .tasks import verify_emails_single_task, verify_emails_task
+from .tasks import verify_emails_single_task, verify_emails_task, distribute_email_verification_tasks
 from rest_framework.decorators import api_view
 from celery.result import AsyncResult
+import uuid
 
 class FileUploadView(APIView):
     parser_classes = [MultiPartParser]
@@ -14,9 +15,10 @@ class FileUploadView(APIView):
         if file_obj:
             
             path = self.handle_file(file_obj)
+            task_id = str(uuid.uuid4()) 
             # print(path)
-            verify_emails_task.delay(path)
-            return Response({'message': 'File received and processing started.'})
+            distribute_email_verification_tasks.delay(path,task_id)
+            return Response({'taskid': task_id})
 
         return Response({'error': 'No file uploaded'}, status=400)
 
@@ -24,7 +26,8 @@ class FileUploadView(APIView):
     def handle_file(self, file_obj):
         # Save file to disk and return the file path
         name = str(file_obj)
-        file_path = '/home/ubuntu/Documents/GitHub/Email-Verification-Backend/emailverify/emailverify/CSV/'+name
+        random_filename = f"{uuid.uuid4()}.csv"
+        file_path = '/home/sikandar/Documents/GitHub/Email-Verification-Backend/emailverify/emailverify/CSV/'+random_filename
         with open(file_path, 'wb+') as destination:
             for chunk in file_obj.chunks():
                 destination.write(chunk)
@@ -37,7 +40,7 @@ class SingleEmail(APIView):
         task = verify_emails_single_task.apply_async(args=[email], countdown=5) 
         
         return Response({'task_id': task.id}, status=202) 
-    
+
 
 
 @api_view(['GET'])

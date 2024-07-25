@@ -1,5 +1,6 @@
 import os
 
+import logging
 
 from celery import Celery
 
@@ -19,7 +20,13 @@ app.autodiscover_tasks()
 
 
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
+@app.task(bind=True)
+def debug_task(self):
+    logger.debug(f'Request: {self.request!r}')
 # @app.task(bind=True, ignore_result=True)
 # def debug_task(self):
 #     print(f'Request: {self.request!r}')
